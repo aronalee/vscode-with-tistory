@@ -10,7 +10,7 @@ const {CLIENT_ID,REDIRECT_URI,SECRET_KEY}=process.env;
 let ACCESS_TOKEN: String='';
 const API_LIST={
     AUTHORIZATION:"https://www.tistory.com/oauth/authorize",
-    OATH_ACCESSTOKEN:"https://www.tistory.com/oauth/access_token"
+    GET_ACCESS_TOKEN:"https://www.tistory.com/oauth/access_token"
 }
 
 
@@ -22,10 +22,11 @@ export const authorizateTistory = async (context: vscode.ExtensionContext) => {
         );
 };
 
+
 export const getAccessToken=async (code: string)=>{
     const {data:{
         access_token
-    }} =await axios.get(API_LIST.OATH_ACCESSTOKEN,{
+    }} =await axios.get(API_LIST.GET_ACCESS_TOKEN,{
         data:{
             client_id:CLIENT_ID,
             client_secret:SECRET_KEY,

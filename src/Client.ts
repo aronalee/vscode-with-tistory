@@ -1,8 +1,6 @@
 import * as http from "http";
 import { URL } from "url";
-import axios from "axios";
 import { getAccessToken } from "./apis";
-import { resolve } from "path";
 
 export const client = http.createServer(
     (req: http.IncomingMessage, res: http.ServerResponse) => {
@@ -17,6 +15,7 @@ export const client = http.createServer(
         if(code!==null){
             getAccessToken(code);
             res.writeHead(200);
+            res.write('<script scr> </script>')
             res.write('done');
         }else{
             res.writeHead(200);
