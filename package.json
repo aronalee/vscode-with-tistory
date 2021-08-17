@@ -18,6 +18,10 @@
 			{
 				"command": "vscode-with-tistory.login",
 				"title": "Login Tistory"
+			},
+			{
+				"command": "vscode-with-tistory.get-blog",
+				"title": "Get BlogInfo"
 			}
 		]
 	},

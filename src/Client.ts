@@ -6,20 +6,18 @@ export const client = http.createServer(
     (req: http.IncomingMessage, res: http.ServerResponse) => {
         const { headers, method, url } = req;
         const params = new URL(`http://localhost:5500${url}`).searchParams;
-        const [code, error, error_reason, state] = [
+        const [code, error, state] = [
             params.get("code"),
             params.get("error"),
-            params.get("error_reason"),
             params.get("state"),
         ];
         if(code!==null){
             getAccessToken(code);
             res.writeHead(200);
-            res.write('<script scr> </script>')
-            res.write('done');
+            res.write(`close WebPage`);
         }else{
             res.writeHead(200);
-            res.write(error_reason);
+            res.write(error);
         }
         res.end();
     }

@@ -1,28 +1,48 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
-import * as vscode from 'vscode';
-import {authorizateTistory} from './apis';
-import { client } from './Client';
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
+import * as vscode from "vscode";
+import { authorizateTistory,getBlogInfo,pushOnePost } from "./apis";
+import { client } from "./Client";
+
+const runClient = () => {
+    if (!client.listening) {
+        client.listen(5500, () => {
+            vscode.window.showInformationMessage("start local client");
+        });
+    }
+};
+
 export function activate(context: vscode.ExtensionContext) {
-	// Use the console to output diagnostic information (console.log) and errors (console.error)
-	// This line of code will only be executed once when your extension is activated
-	console.log('Congratulations, your extension "vscode-with-tistory" is now active!');
+    // The command has been defined in the package.json file
+    // Now provide the implementation of the command with registerCommand
+    // The commandId parameter must match the command field in package.json
+    const loginTistory = vscode.commands.registerCommand(
+        "vscode-with-tistory.login",
+        () => {
+            runClient();
+            authorizateTistory();
+        }
+    );
+    const getBlog = vscode.commands.registerCommand(
+        "vscode-with-tistory.get-blog",
+        () => {
+            getBlogInfo();
+        }
+    );
+    const pushOne = vscode.commands.registerCommand(
+        "vscode-with-tistory.push-one",
+        () => {
+            pushOnePost();
+        }
+    );
+    const pushAll = vscode.commands.registerCommand(
+        "vscode-with-tistory.push-all",
+        () => {
+            runClient();
+        }
+    );
 
-	// The command has been defined in the package.json file
-	// Now provide the implementation of the command with registerCommand
-	// The commandId parameter must match the command field in package.json
-	let disposable = vscode.commands.registerCommand('vscode-with-tistory.login', () => {
-		if(!client.listening){
-			client.listen(5500,()=>{
-				console.log('server is running');
-			});
-		}
-		authorizateTistory(context);
-	});
-
-	context.subscriptions.push(disposable);
+    context.subscriptions.push(loginTistory,getBlog);
 }
 
-export function deactivate() {client.close(()=>console.log("Stop Client"))}
+export function deactivate() {
+    client.close(() => console.log("Stop Client"));
+}

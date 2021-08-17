@@ -2,38 +2,93 @@ import "dotenv/config";
 import * as vscode from "vscode";
 import axios from "axios";
 import * as dotenv from "dotenv";
+import {BlogInfo} from "./interface";
 
-dotenv.config({path: 'D:\\MyProject\\vscode-with-tistory\\.env'});
+dotenv.config({ path: "D:\\MyProject\\vscode-with-tistory\\.env" });
 
+const { CLIENT_ID, REDIRECT_URI, SECRET_KEY } = process.env;
 
-const {CLIENT_ID,REDIRECT_URI,SECRET_KEY}=process.env;
-let ACCESS_TOKEN: String='';
-const API_LIST={
-    AUTHORIZATION:"https://www.tistory.com/oauth/authorize",
-    GET_ACCESS_TOKEN:"https://www.tistory.com/oauth/access_token"
+const API_URI = {
+    AUTHORIZATION: "https://www.tistory.com/oauth/authorize",
+    GET_access_token: "https://www.tistory.com/oauth/access_token",
+    BlogInfo: "https://www.tistory.com/apis/blog/info",
+    
+};
+
+let access_token: String = "";
+function setAccessToken(token: string) {
+    access_token = token;
 }
 
 
-export const authorizateTistory = async (context: vscode.ExtensionContext) => {
-    vscode.env.openExternal(
-        vscode.Uri.parse(
-            `${API_LIST.AUTHORIZATION}=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`
+
+const checkaccess_token = (): boolean => (access_token !== "" ? true : false);
+
+export const authorizateTistory = async () => {
+    if (!checkaccess_token()) {
+        vscode.env.openExternal(
+            vscode.Uri.parse(
+                `${API_URI.AUTHORIZATION}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`
             )
         );
+    } else {
+        vscode.window.showInformationMessage("Exist Login");
+    }
 };
 
 
-export const getAccessToken=async (code: string)=>{
-    const {data:{
-        access_token
-    }} =await axios.get(API_LIST.GET_ACCESS_TOKEN,{
-        data:{
-            client_id:CLIENT_ID,
-            client_secret:SECRET_KEY,
-            redirect_uri:REDIRECT_URI,
-            code,
-            grant_type:'authorization_code'
+export const pushOnePost = async () => {
+    const blogInfo=getBlogInfo();
+};
+
+export const getBlogInfo = async (): Promise<BlogInfo| undefined> => {
+    try {
+        if (checkaccess_token()) {
+            const {
+                data: {
+                    tistory: {
+                        item: { blogs },
+                        status,
+                        error_message,
+                    },
+                },
+            } = await axios.get(API_URI.BlogInfo, {
+                data: {
+                    access_token,
+                    output: "json",
+                },
+            });
+            if (status === '200' && error_message === undefined) {
+                for (let item of blogs) {
+                    if (item.default === "Y") {
+                        vscode.window.showInformationMessage(
+                            `Hello ${item.nickname}`
+                        );
+                        return item;
+                    }
+                }
+            } else {
+                throw new Error(error_message);
+            }
+        }else{
+            throw new Error("Not Exist Token");
         }
+    } catch (error) {
+        vscode.window.showErrorMessage("Request Failed");
+    }
+};
+
+export const getAccessToken = async (code: string) => {
+    const {
+        data: { access_token },
+    } = await axios.get(API_URI.GET_access_token, {
+        data: {
+            client_id: CLIENT_ID,
+            client_secret: SECRET_KEY,
+            redirect_uri: REDIRECT_URI,
+            code,
+            grant_type: "authorization_code",
+        },
     });
-    ACCESS_TOKEN=access_token;
-}
+    setAccessToken(access_token);
+};
