@@ -17,7 +17,7 @@ export const client = http.createServer(
             res.write(`close WebPage`);
         }else{
             res.writeHead(200);
-            res.write(error);
+            res.write(`Tistory Error: ${error}`);
         }
         res.end();
     }
