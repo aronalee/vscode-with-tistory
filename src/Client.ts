@@ -1,6 +1,6 @@
 import * as http from "http";
 import { URL } from "url";
-import { getAccessToken } from "./apis";
+import { createAccessToken } from "./apis";
 
 export const client = http.createServer(
     (req: http.IncomingMessage, res: http.ServerResponse) => {
@@ -12,7 +12,7 @@ export const client = http.createServer(
             params.get("state"),
         ];
         if(code!==null){
-            getAccessToken(code);
+            createAccessToken(code);
             res.writeHead(200);
             res.write(`close WebPage`);
         }else{

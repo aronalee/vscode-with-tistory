@@ -23,7 +23,17 @@
 				"command": "vscode-with-tistory.get-blog",
 				"title": "Get BlogInfo"
 			}
-		]
+		],
+		"configuration": {
+			"title": "vscode-with-tistory",
+			"properties": {
+				"vscode-with-tistory.token":{
+					"type":"string",
+					"default":"",
+					"description":"티스토리로 부터 받아온 액세스 토큰을 저장"
+				}
+			}
+		}
 	},
 	"scripts": {
 		"vscode:prepublish": "npm run package",

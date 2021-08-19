@@ -10,24 +10,33 @@ const { CLIENT_ID, REDIRECT_URI, SECRET_KEY } = process.env;
 
 const API_URI = {
     AUTHORIZATION: "https://www.tistory.com/oauth/authorize",
-    GET_access_token: "https://www.tistory.com/oauth/access_token",
-    BlogInfo: "https://www.tistory.com/apis/blog/info",
+    GET_ACCESS_TOKEN: "https://www.tistory.com/oauth/access_token",
+    BLOG_INFO: "https://www.tistory.com/apis/blog/info",
 };
-
-let access_token: String = "";
-function setAccessToken(token: string) {
-    access_token = token;
-}
-
-const checkAccessToken = (): boolean =>access_token !== "" ;
-
-// TODO: 현재 workspace의 path를 조회 => 절대경로로 파일을 저장
-const saveToken = (token: string): void => {
-    console.log(token);
+const configuration = vscode.workspace.getConfiguration("vscode-with-tistory");
+const setAccessToken = (token: string): void => {
+    if (configuration.has("token")) {
+        configuration.update("token", token);
+    } else {
+        throw new Error("Not Exist Token property");
+    }
+};
+const getAccessToken = (): string | false => {
+    if (configuration.has("token")) {
+        const token: string | undefined = configuration.get("token");
+        if (token === undefined) {
+            return false;
+        } else {
+            return token;
+        }
+    } else {
+        return false;
+    }
 };
 
 export const authorizateTistory = async () => {
-    if (!checkAccessToken()) {
+    const accessToken: string | boolean = getAccessToken();
+    if (!accessToken) {
         vscode.env.openExternal(
             vscode.Uri.parse(
                 `${API_URI.AUTHORIZATION}?client_id=${CLIENT_ID}&redirect_uri=${REDIRECT_URI}&response_type=code`
@@ -37,14 +46,15 @@ export const authorizateTistory = async () => {
         vscode.window.showInformationMessage("Exist Login");
     }
 };
-
+// TODO: 글 1개를 포스팅하는 함수 작성
 export const pushOnePost = async () => {
     const blogInfo = getBlogInfo();
 };
 
 export const getBlogInfo = async (): Promise<BlogInfo | undefined> => {
     try {
-        if(checkAccessToken()){
+        const accessToken: string | boolean = getAccessToken();
+        if (accessToken) {
             const {
                 data: {
                     tistory: {
@@ -53,9 +63,9 @@ export const getBlogInfo = async (): Promise<BlogInfo | undefined> => {
                         error_message,
                     },
                 },
-            } = await axios.get(API_URI.BlogInfo, {
+            } = await axios.get(API_URI.BLOG_INFO, {
                 data: {
-                    access_token,
+                    access_token: accessToken,
                     output: "json",
                 },
             });
@@ -71,18 +81,18 @@ export const getBlogInfo = async (): Promise<BlogInfo | undefined> => {
             } else {
                 throw new Error(error_message);
             }
-        }else{
-            throw new Error('Not Exist Token');
+        } else {
+            throw new Error("Not Exist Token");
         }
     } catch (error) {
         vscode.window.showErrorMessage(`Request Failed`);
     }
 };
 
-export const getAccessToken = async (code: string): Promise<void> => {
+export const createAccessToken = async (code: string): Promise<void> => {
     const {
         data: { access_token },
-    } = await axios.get(API_URI.GET_access_token, {
+    } = await axios.get(API_URI.GET_ACCESS_TOKEN, {
         data: {
             client_id: CLIENT_ID,
             client_secret: SECRET_KEY,
@@ -92,5 +102,4 @@ export const getAccessToken = async (code: string): Promise<void> => {
         },
     });
     setAccessToken(access_token);
-    saveToken(access_token);
 };
