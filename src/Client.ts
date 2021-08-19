@@ -9,7 +9,6 @@ const client = http.createServer(
         const [code, error] = [
             params.get("code"),
             params.get("error"),
-            params.get("state"),
         ];
         if (code !== null) {
             createAccessToken(code);
