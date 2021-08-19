@@ -1,14 +1,7 @@
 import * as vscode from "vscode";
 import { authorizateTistory,getBlogInfo,pushOnePost } from "./apis";
-import { client } from "./Client";
+import { runClient, stopClient } from "./Client";
 
-const runClient = () => {
-    if (!client.listening) {
-        client.listen(5500, () => {
-            vscode.window.showInformationMessage("start local client");
-        });
-    }
-};
 
 export function activate(context: vscode.ExtensionContext) {
     // The command has been defined in the package.json file
@@ -44,5 +37,5 @@ export function activate(context: vscode.ExtensionContext) {
 }
 
 export function deactivate() {
-    client.close(() => console.log("Stop Client"));
+    stopClient();
 }

@@ -2,7 +2,7 @@ import * as http from "http";
 import { URL } from "url";
 import { createAccessToken } from "./apis";
 
-export const client = http.createServer(
+const client = http.createServer(
     (req: http.IncomingMessage, res: http.ServerResponse) => {
         const { headers, method, url } = req;
         const params = new URL(`http://localhost:5500${url}`).searchParams;
@@ -22,3 +22,17 @@ export const client = http.createServer(
         res.end();
     }
 );
+
+
+export const runClient = () => {
+    if (!client.listening) {
+        client.listen(5500, () => {
+            console.log("Start Client");
+        });
+    }
+};
+export const stopClient=()=>{
+    if (client.listening) {
+        client.close(() => console.log("Stop Client"));
+    }
+}
