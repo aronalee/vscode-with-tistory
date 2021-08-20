@@ -1,20 +1,25 @@
 import "dotenv/config";
 import * as vscode from "vscode";
 import axios from "axios";
-import { BlogInfo } from "./interface";
+import { BlogInfo, ConfigType } from "./interface";
 import { stopClient } from "./Client";
+import {API_URI,PROPERTIES} from './Enum';
 
-const API_URI = {
-    AUTHORIZATION: "https://www.tistory.com/oauth/authorize",
-    GET_ACCESS_TOKEN: "https://www.tistory.com/oauth/access_token",
-    BLOG_INFO: "https://www.tistory.com/apis/blog/info",
+
+const setAccessToken = (token: string): void => {
+    const configuration = vscode.workspace.getConfiguration(
+        PROPERTIES.TITLE
+    );
+    if (configuration.has("token")) {
+        configuration.update("token", token);
+    } else {
+        throw new Error("Not Exist Token property");
+    }
 };
 
-type ConfigType = string | false;
-
-const getConfigProperty = (property: string): ConfigType => {
+export const getConfigProperty = (property: string): ConfigType => {
     const configuration = vscode.workspace.getConfiguration(
-        "vscode-with-tistory"
+        PROPERTIES.TITLE
     );
     const value: string | undefined = configuration.get(property);
     if (value !== undefined || value === "") {
@@ -24,23 +29,12 @@ const getConfigProperty = (property: string): ConfigType => {
     }
 };
 
-const setAccessToken = (token: string): void => {
-    const configuration = vscode.workspace.getConfiguration(
-        "vscode-with-tistory"
-    );
-    if (configuration.has("token")) {
-        configuration.update("token", token);
-    } else {
-        throw new Error("Not Exist Token property");
-    }
-};
-
 export const authorizateTistory = async () => {
-    const accessToken: ConfigType = getConfigProperty("token");
-    const client_id: ConfigType = getConfigProperty("OAuth2.ClientID");
-    const redirect_uri: ConfigType = getConfigProperty("OAuth2.RedirectURI");
+    const accessToken: ConfigType = getConfigProperty(PROPERTIES.TOKEN);
+    const client_id: ConfigType = getConfigProperty(PROPERTIES.CLIENT_ID);
+    const redirect_uri: ConfigType = getConfigProperty(PROPERTIES.REDIRECT_URI);
     if (!(client_id && redirect_uri)) {
-        vscode.window.showErrorMessage("OAuth2속성을 확인해주세요");
+        vscode.window.showErrorMessage("Client.OAuth2속성을 확인해주세요");
     } else if (!accessToken) {
         vscode.env.openExternal(
             vscode.Uri.parse(
@@ -54,12 +48,12 @@ export const authorizateTistory = async () => {
 
 // TODO: 글 1개를 포스팅하는 함수 작성
 export const pushOnePost = async () => {
-    const blogInfo = getBlogInfo();
+    const blogInfo: BlogInfo| undefined = await getBlogInfo();
 };
 
 export const getBlogInfo = async (): Promise<BlogInfo | undefined> => {
     try {
-        const access_token: ConfigType = getConfigProperty("token");
+        const access_token: ConfigType = getConfigProperty(PROPERTIES.TOKEN);
         if (access_token) {
             const {
                 data: {
@@ -96,9 +90,9 @@ export const getBlogInfo = async (): Promise<BlogInfo | undefined> => {
 };
 
 export const createAccessToken = async (code: string): Promise<void> => {
-    const client_id: ConfigType = getConfigProperty("OAuth2.ClientID");
-    const client_secret: ConfigType = getConfigProperty("OAuth2.ClientSecret");
-    const redirect_uri: ConfigType = getConfigProperty("OAuth2.RedirectURI");
+    const client_id: ConfigType = getConfigProperty(PROPERTIES.CLIENT_ID);
+    const client_secret: ConfigType = getConfigProperty(PROPERTIES.CLIENT_SECRET);
+    const redirect_uri: ConfigType = getConfigProperty(PROPERTIES.REDIRECT_URI);
     if (client_id && client_secret && client_secret) {
         const {
             data: { access_token },
@@ -114,6 +108,6 @@ export const createAccessToken = async (code: string): Promise<void> => {
         stopClient();
         setAccessToken(access_token);
     } else {
-        vscode.window.showErrorMessage("OAuth2속성을 확인해주세요");
+        vscode.window.showErrorMessage("Client.OAuth2속성을 확인해주세요");
     }
 };

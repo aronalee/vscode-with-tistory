@@ -20,3 +20,5 @@ export interface BlogInfo {
         invitation: string;
     };
 }
+
+export type ConfigType = string | false;

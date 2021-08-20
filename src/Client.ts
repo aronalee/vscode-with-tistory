@@ -5,10 +5,10 @@ import { createAccessToken } from "./apis";
 const client = http.createServer(
     (req: http.IncomingMessage, res: http.ServerResponse) => {
         const { url } = req;
-        const params = new URL(`http://localhost:5500${url}`).searchParams;
+        const params = new URL(`http://localhost${url}`).searchParams;
         const [code, error] = [
             params.get("code"),
-            params.get("error"),
+            params.get("error")
         ];
         if (code !== null) {
             createAccessToken(code);
@@ -21,6 +21,7 @@ const client = http.createServer(
         res.end();
     }
 );
+
 
 export const runClient = () => {
     if (!client.listening) {
