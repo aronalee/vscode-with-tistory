@@ -6,10 +6,7 @@ const client = http.createServer(
     (req: http.IncomingMessage, res: http.ServerResponse) => {
         const { url } = req;
         const params = new URL(`http://localhost${url}`).searchParams;
-        const [code, error] = [
-            params.get("code"),
-            params.get("error")
-        ];
+        const [code, error] = [params.get("code"), params.get("error")];
         if (code !== null) {
             createAccessToken(code);
             res.writeHead(200);
@@ -22,15 +19,14 @@ const client = http.createServer(
     }
 );
 
-
-export const runClient = () => {
+export const runClient = (): void => {
     if (!client.listening) {
         client.listen(5500, () => {
             console.log("Start Client");
         });
     }
 };
-export const stopClient = () => {
+export const stopClient = (): void => {
     if (client.listening) {
         client.close(() => console.log("Stop Client"));
     }
