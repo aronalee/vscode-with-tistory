@@ -1,5 +1,10 @@
 import * as vscode from "vscode";
-import { authorizateTistory,getBlogInfo,pushOnePost,getConfigProperty } from "./apis";
+import {
+    certifyTistory,
+    getBlogInfo,
+    pushOnePost,
+    getConfigProperty,
+} from "./apis";
 import { runClient, stopClient } from "./Client";
 
 
@@ -9,7 +14,7 @@ export function activate(context: vscode.ExtensionContext) {
         () => {
             getConfigProperty("Client.OAuth2.RedirectURI");
             runClient();
-            authorizateTistory();
+            certifyTistory();
         }
     );
     const getBlog = vscode.commands.registerCommand(

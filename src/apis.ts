@@ -29,7 +29,7 @@ export const getConfigProperty = (property: string): ConfigType => {
     }
 };
 
-export const authorizateTistory = async () => {
+export const certifyTistory = async () => {
     const accessToken: ConfigType = getConfigProperty(PROPERTIES.TOKEN);
     const client_id: ConfigType = getConfigProperty(PROPERTIES.CLIENT_ID);
     const redirect_uri: ConfigType = getConfigProperty(PROPERTIES.REDIRECT_URI);
