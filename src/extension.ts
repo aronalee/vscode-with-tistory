@@ -1,7 +1,6 @@
 import * as vscode from "vscode";
 import {
     certifyTistory,
-    getBlogInfo,
     pushOnePost,
     getConfigProperty,
 } from "./apis";
@@ -40,14 +39,8 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
     );
-    const getBlog = vscode.commands.registerCommand(
-        "vscode-with-tistory.get-blog",
-        () => {
-            getBlogInfo();
-        }
-    );
     const pushOne = vscode.commands.registerCommand(
-        "vscode-with-tistory.push-one",
+        "vscode-with-tistory.pushOne",
         () => {
             pushOnePost();
         }
@@ -57,7 +50,7 @@ export function activate(context: vscode.ExtensionContext) {
         () => {}
     );
 
-    context.subscriptions.push(loginTistory, getBlog);
+    context.subscriptions.push(loginTistory, pushOne);
 }
 
 export function deactivate() {

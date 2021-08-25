@@ -3,7 +3,7 @@ import * as vscode from "vscode";
 import axios from "axios";
 import { BlogInfo, ConfigType } from "./interface";
 import { stopClient } from "./Client";
-import { API_URI, KIND_OF_CERTIFICATE, PROPERTIES } from "./Enum";
+import { API_URI, KIND_OF_CERTIFICATE, PROPERTIES, VISIBILITY } from "./Enum";
 
 const setAccessToken = (token: string): void => {
     const configuration = vscode.workspace.getConfiguration(PROPERTIES.Title);
@@ -13,6 +13,48 @@ const setAccessToken = (token: string): void => {
         throw new Error("Not Exist Token property");
     }
 };
+
+const getBlogInfo = async () => {
+    try {
+        const access_token: ConfigType = getConfigProperty(PROPERTIES.Token);
+        if (access_token) {
+            const {
+                data: {
+                    tistory: {
+                        item: { blogs },
+                        status,
+                        error_message,
+                    },
+                },
+            } = await axios.get(API_URI.BLOG_INFO, {
+                data: {
+                    access_token,
+                    output: "json",
+                },
+            });
+            if (status === "200" && error_message === undefined) {
+                return blogs;
+            } else {
+                throw new Error(error_message);
+            }
+        } else {
+            throw new Error("Not Exist Token");
+        }
+    } catch (error) {
+        vscode.window.showErrorMessage(`Request Failed: ${error}`);
+    }
+};
+
+const findDefaultBlog=(blogInfos: BlogInfo[]): BlogInfo=>{
+    for(let blogInfo of blogInfos) {
+        if(blogInfo.default==="Y"){
+            return blogInfo;
+        }else{
+            continue;
+        }
+    }
+    throw new Error('Not Exist Default Blog');
+}
 
 export const getConfigProperty = (property: string): ConfigType => {
     const configuration = vscode.workspace.getConfiguration(PROPERTIES.Title);
@@ -45,46 +87,19 @@ export const certifyTistory = (
 
 // TODO: 글 1개를 포스팅하는 함수 작성
 export const pushOnePost = async () => {
-    const blogInfo: BlogInfo | undefined = await getBlogInfo();
-};
-
-export const getBlogInfo = async (): Promise<BlogInfo | undefined> => {
     try {
-        const access_token: ConfigType = getConfigProperty(PROPERTIES.Token);
-        if (access_token) {
-            const {
-                data: {
-                    tistory: {
-                        item: { blogs },
-                        status,
-                        error_message,
-                    },
-                },
-            } = await axios.get(API_URI.BLOG_INFO, {
-                data: {
-                    access_token,
-                    output: "json",
-                },
-            });
-            if (status === "200" && error_message === undefined) {
-                for (let item of blogs) {
-                    if (item.default === "Y") {
-                        vscode.window.showInformationMessage(
-                            `Hello ${item.nickname}`
-                        );
-                        return item;
-                    }
-                }
-            } else {
-                throw new Error(error_message);
+        const blogInfos: BlogInfo[] = await getBlogInfo();
+        let defaultBlog=findDefaultBlog(blogInfos);
+        for (let blog of blogInfos) {
+            if (blog.default === "Y") {
+                defaultBlog = blog;
             }
-        } else {
-            throw new Error("Not Exist Token");
         }
     } catch (error) {
-        vscode.window.showErrorMessage(`Request Failed`);
+        console.log(error);
     }
 };
+
 
 export const createAccessToken = async (code: string): Promise<void> => {
     const client_id: ConfigType = getConfigProperty(PROPERTIES.ClientID);

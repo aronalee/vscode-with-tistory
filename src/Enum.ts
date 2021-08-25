@@ -1,7 +1,8 @@
 export enum API_URI {
     AUTHORIZATION="https://www.tistory.com/oauth/authorize",
     GET_ACCESS_TOKEN="https://www.tistory.com/oauth/access_token",
-    BLOG_INFO="https://www.tistory.com/apis/blog/info"
+    BLOG_INFO="https://www.tistory.com/apis/blog/info",
+    WRITE_BLOG="https://www.tistory.com/apis/post/write"
 };
 export enum PROPERTIES {
     Title="vscode-with-tistory",
@@ -15,4 +16,10 @@ export enum KIND_OF_CERTIFICATE{
     OpenBrowser,
     HasNotProperty,
     HasToken,
+}
+
+export enum VISIBILITY{
+    Private,
+    Protect,
+    Public=3,
 }
