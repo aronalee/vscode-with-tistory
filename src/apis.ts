@@ -14,7 +14,7 @@ const setAccessToken = (token: string): void => {
     }
 };
 
-const getBlogInfo = async () => {
+export const getBlogInfo = async (): Promise<BlogInfo[]|any> => {
     try {
         const access_token: ConfigType = getConfigProperty(PROPERTIES.Token);
         if (access_token) {
@@ -45,7 +45,7 @@ const getBlogInfo = async () => {
     }
 };
 
-const findDefaultBlog=(blogInfos: BlogInfo[]): BlogInfo=>{
+export const findDefaultBlog=(blogInfos: BlogInfo[]): BlogInfo=>{
     for(let blogInfo of blogInfos) {
         if(blogInfo.default==="Y"){
             return blogInfo;
@@ -95,6 +95,7 @@ export const pushOnePost = async () => {
                 defaultBlog = blog;
             }
         }
+        const accessToken = getConfigProperty(PROPERTIES.Token);
     } catch (error) {
         console.log(error);
     }

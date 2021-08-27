@@ -2,7 +2,8 @@ export enum API_URI {
     AUTHORIZATION="https://www.tistory.com/oauth/authorize",
     GET_ACCESS_TOKEN="https://www.tistory.com/oauth/access_token",
     BLOG_INFO="https://www.tistory.com/apis/blog/info",
-    WRITE_BLOG="https://www.tistory.com/apis/post/write"
+    WRITE_BLOG="https://www.tistory.com/apis/post/write",
+    READ_BLOG="https://www.tistory.com/apis/post/read"
 };
 export enum PROPERTIES {
     Title="vscode-with-tistory",

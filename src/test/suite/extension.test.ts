@@ -1,15 +1,50 @@
-import * as assert from 'assert';
+import * as assert from "assert";
+import * as vscode from "vscode";
+import axios from "axios";
+import { API_URI, PROPERTIES, VISIBILITY } from "../../Enum";
+import { findDefaultBlog, getBlogInfo, getConfigProperty } from "../../apis";
+import { BlogInfo } from "../../interface";
 
-// You can import and use all API from the 'vscode' module
-// as well as import your extension to test it
-import * as vscode from 'vscode';
-// import * as myExtension from '../../extension';
+const accessToken = getConfigProperty(PROPERTIES.Token);
+const dateTimeFormat="2021-09-17 03:24:00";
+const timestamp = new Date(dateTimeFormat).getTime()/1000;
+describe("Tistory Test", () => {
+    it("Post Blog1. Set Timestamp", async () => {
+        try {
+            const blogInfos: BlogInfo[] = await getBlogInfo();
+            const defaultBlog: BlogInfo = findDefaultBlog(blogInfos);
+            const {
+                data: {
+                    tistory: { postId },
+                },
+            } = await axios.post(API_URI.WRITE_BLOG, {
+                access_token: accessToken,
+                output: "json",
+                blogName: defaultBlog.name,
+                title: "test",
+				visibility:VISIBILITY.Protect,
+                published: timestamp,
+                content: "<h1>header1</h1>",
+            });
+            const {
+                data: {
+                    tistory: {
+                        item: { date },
+                    },
+                },
+            } = await axios.get(API_URI.READ_BLOG, {
+                data: {
+                    access_token: accessToken,
+                    output: "json",
+                    blogName: defaultBlog.name,
+                    postId,
+                },
+            });
+            assert.strictEqual(date, dateTimeFormat, `date is ${date}`);
+		
+        } catch (error) {
+            console.error(error);
 
-suite('Extension Test Suite', () => {
-	vscode.window.showInformationMessage('Start all tests.');
-
-	test('Sample test', () => {
-		assert.strictEqual(-1, [1, 2, 3].indexOf(5));
-		assert.strictEqual(-1, [1, 2, 3].indexOf(0));
-	});
+        }
+    });
 });

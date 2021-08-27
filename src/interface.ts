@@ -20,5 +20,20 @@ export interface BlogInfo {
         invitation: string;
     };
 }
+export interface PostInfo {
+    access_token: string;
+    output: "json" | "xml";
+    blogName: string;
+    title: string;
+    content?: string;
+    visibility?: string;
+    category?: string;
+    published?: string;
+    slogan?: string;
+    tag?: string;
+    acceptComment?: string;
+    password?: string;
+    postId?: string;
+}
 
 export type ConfigType = string | false;
