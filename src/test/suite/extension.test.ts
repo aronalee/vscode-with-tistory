@@ -10,14 +10,13 @@ const dateTimeFormat="2021-09-17 03:24:00";
 const timestamp = new Date(dateTimeFormat).getTime()/1000;
 describe("Tistory Test", () => {
     it("Post Blog1. Set Timestamp", async () => {
-        try {
             const blogInfos: BlogInfo[] = await getBlogInfo();
             const defaultBlog: BlogInfo = findDefaultBlog(blogInfos);
             const {
                 data: {
                     tistory: { postId },
                 },
-            } = await axios.post(API_URI.WRITE_BLOG, {
+            } = await axios.post(API_URI.PUSH_POST, {
                 access_token: accessToken,
                 output: "json",
                 blogName: defaultBlog.name,
@@ -32,7 +31,7 @@ describe("Tistory Test", () => {
                         item: { date },
                     },
                 },
-            } = await axios.get(API_URI.READ_BLOG, {
+            } = await axios.get(API_URI.READ_POST, {
                 data: {
                     access_token: accessToken,
                     output: "json",
@@ -40,11 +39,7 @@ describe("Tistory Test", () => {
                     postId,
                 },
             });
+			console.log(date);
             assert.strictEqual(date, dateTimeFormat, `date is ${date}`);
-		
-        } catch (error) {
-            console.error(error);
-
-        }
     });
 });
