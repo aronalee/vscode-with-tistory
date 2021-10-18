@@ -9,7 +9,26 @@
         "@typescript-eslint"
     ],
     "rules": {
-        "@typescript-eslint/naming-convention": "warn",
+        "@typescript-eslint/naming-convention": [
+            {
+                "selector": "default",
+                "format": [
+                    "camelCase"
+                ]
+            },
+            {
+                "selector": "enumMember",
+                "format": [
+                    "UPPER_CASE"
+                ]
+            },
+            {
+                "selector": "objectLiteralProperty",
+                "format": [
+                    "snake_case"
+                ]
+            }
+        ],
         "@typescript-eslint/semi": "warn",
         "curly": "warn",
         "no-throw-literal": "warn",

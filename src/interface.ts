@@ -36,4 +36,9 @@ export interface PostInfo {
     postId?: string;
 }
 
-export type ConfigType = string | false;
+export interface TistoryFormat {
+    status: string;
+    error_message?: string;
+    item?: BlogInfo | PostInfo;
+    url?: string;
+}
