@@ -26,7 +26,7 @@ const parsingTagOption = (line: string): string => {
     if (tagOption?.length === 1) {
         return tagOption[0];
     } else {
-        throw new Error(ERROR_MESSAGES.FailParsing);
+        return "";
     }
 };
 
@@ -58,10 +58,10 @@ const parsingOption = (line: string): Array<string | boolean> => {
         "u"
     );
     const groups = line.match(regex)?.groups;
-    if (groups?.key && groups?.value) {
-        return [groups.key, groups.value];
-    } else if (groups?.key === "tag") {
+    if (groups?.key === "tag") {
         return [groups.key];
+    } else if (groups?.key && groups?.value) {
+        return [groups.key, groups.value];
     } else {
         return [""];
     }
@@ -91,16 +91,19 @@ const readFile = async (
             } else if (lineNumber === 0 && line === "---") {
             } else if (lineNumber > 0 && line !== "---") {
                 const parsedArray = parsingOption(line);
-                if (parsedArray.length > 1) {
-                    const isParsingSuccess = options.setOption(parsedArray);
+                if (parsedArray.length > 0) {
+                    const isParsingSuccess = options.setOption(
+                        parsedArray,
+                        parsingTag
+                    );
+                    if (parsingTag) {
+                        options.tag = parsingTagOption(line);
+                    }
                     if (isParsingSuccess) {
                         parsingTag = false;
                     } else if (!isParsingSuccess) {
                         parsingTag = true;
                     }
-                }
-                if (parsingTag) {
-                    options.tag = parsingTagOption(line);
                 }
             } else {
                 endParsing = true;

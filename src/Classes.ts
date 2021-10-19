@@ -116,7 +116,7 @@ export class ParsedOptions {
     public get url(): string {
         return this._url ? this._url : "";
     }
-    public setOption(parsedArray: Array<any>): boolean {
+    public setOption(parsedArray: Array<any>, isTagParsing: boolean): boolean {
         if (parsedArray.length === 2) {
             const [key, value] = parsedArray;
             switch (key) {
@@ -150,7 +150,7 @@ export class ParsedOptions {
             return true;
         } else if (
             parsedArray.length === 1 &&
-            parsedArray[0].trim() === "tag"
+            (parsedArray[0].trim() === "tag" || isTagParsing)
         ) {
             return false;
         } else {
