@@ -4,7 +4,7 @@ import axios from "axios";
 import * as fs from "fs";
 import { createInterface } from "readline";
 import { API_URI, PROPERTIES, VISIBILITY } from "../../Enum";
-import { findDefaultBlog, getBlogInfo, getConfigProperty } from "../../apis";
+import { getBlogInfo, getConfigProperty } from "../../apis";
 import { BlogInfo } from "../../interface";
 import * as MarkdownIt from "markdown-it";
 import * as MarkdownItEmoji from "markdown-it-emoji";
@@ -13,6 +13,17 @@ const accessToken = getConfigProperty(PROPERTIES.Token);
 const dateTimeFormat = "2021-09-17 03:24:00";
 const timestamp = new Date(dateTimeFormat).getTime() / 1000;
 let selectedBlog: BlogInfo;
+
+const findDefaultBlog = (blogInfos: BlogInfo[]): BlogInfo => {
+    for (let blogInfo of blogInfos) {
+        if (blogInfo.default === "Y") {
+            return blogInfo;
+        } else {
+            continue;
+        }
+    }
+    throw new Error("디폴트 블로그 미존재");
+};
 
 before("Get Default Blog ", async () => {
     const blogInfos: BlogInfo[] = await getBlogInfo();

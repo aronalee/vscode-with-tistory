@@ -169,6 +169,7 @@ export const postBlog = async (): Promise<string> => {
         const content = MD2HTML(markdownContent);
         const accessToken = getConfigProperty(PROPERTIES.Token);
         let responseTistory: TistoryFormat;
+
         let postedData: PostInfo = {
             access_token: accessToken,
             output: "json",

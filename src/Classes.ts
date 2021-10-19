@@ -1,4 +1,4 @@
-import { TextEditorCursorStyle } from "vscode";
+import { TextEditorCursorStyle, ThemeIcon } from "vscode";
 import { ERROR_MESSAGES, VISIBILITY } from "./Enum";
 
 export class ParsedOptions {
@@ -23,7 +23,7 @@ export class ParsedOptions {
     }
 
     public get title(): string {
-        return this._title ? this.title : "";
+        return this._title ? this._title : "";
     }
 
     public set postId(v: number) {
@@ -31,7 +31,7 @@ export class ParsedOptions {
     }
 
     public get postId(): number {
-        return this._postId ? this.postId : -1;
+        return this._postId ? this.postId : 0;
     }
 
     public set tag(tagOption: string) {
