@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import axios, { AxiosResponse } from "axios";
-import { BlogInfo, PostInfo, TistoryFormat } from "./interface";
+import { BlogInfo, CategoryInfo, PostInfo, TistoryFormat } from "./interface";
 import { stopClient } from "./Client";
 import {
     API_URI,
@@ -30,7 +30,9 @@ const parsingTagOption = (line: string): string => {
     }
 };
 
-const getCategories = async (blogName: string) => {
+const getCategories = async (
+    blogName: string
+): Promise<Array<CategoryInfo>> => {
     const {
         data: { tistory },
     } = await axios.get(API_URI.CATEGORY_LIST, {

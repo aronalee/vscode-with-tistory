@@ -1,5 +1,6 @@
 import { TextEditorCursorStyle, ThemeIcon } from "vscode";
 import { ERROR_MESSAGES, VISIBILITY } from "./Enum";
+import { CategoryInfo } from "./interface";
 
 export class ParsedOptions {
     private _title?: string;
@@ -10,10 +11,10 @@ export class ParsedOptions {
     private _comments?: boolean;
     public password?: string;
     private _post?: "public" | "protect" | "private";
-    private _category?: string;
-    private _categoryList: Array<any>;
+    private _category?: CategoryInfo;
+    private _categoryList: Array<CategoryInfo>;
 
-    constructor(categoryList: Array<any>) {
+    constructor(categoryList: Array<CategoryInfo>) {
         this._tag = new Array<string>();
         this._categoryList = categoryList;
     }
@@ -100,14 +101,14 @@ export class ParsedOptions {
     public set category(categoryName: string) {
         for (let category of this._categoryList) {
             if (category.name === categoryName) {
-                this._category = categoryName;
+                this._category = category;
                 return;
             }
         }
         throw new TypeError(ERROR_MESSAGES.FailParsing);
     }
     public get category(): string {
-        return this._category ? this._category : "0";
+        return this._category ? this._category.id : "0";
     }
     public set url(slogan: string) {
         this._url = slogan;

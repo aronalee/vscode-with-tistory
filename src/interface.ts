@@ -42,3 +42,11 @@ export interface TistoryFormat {
     item?: BlogInfo | PostInfo;
     url?: string;
 }
+
+export interface CategoryInfo {
+    id: string;
+    name: string;
+    parent: string;
+    label: string;
+    entries: string;
+}
