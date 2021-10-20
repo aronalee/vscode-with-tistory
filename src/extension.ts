@@ -1,6 +1,8 @@
 import { AxiosError } from "axios";
 import * as vscode from "vscode";
-import { certifyTistory, postBlog, getConfigProperty } from "./apis";
+import { postBlog } from "./apis";
+import { getConfigProperty } from "./commons";
+import { certifyTistory } from "./loginTistory";
 import { runClient, stopClient } from "./Client";
 import {
     ERROR_MESSAGES,

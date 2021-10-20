@@ -1,13 +1,16 @@
 import * as http from "http";
 import { URL } from "url";
-import { createAccessToken } from "./apis";
+import { createAccessToken } from "./loginTistory";
 
 const client = http.createServer(
     (req: http.IncomingMessage, res: http.ServerResponse) => {
         const { url } = req;
         const params = new URL(`http://localhost${url}`).searchParams;
-        const [code, error,error_description] = [
-            params.get("code"), params.get("error"),params.get("error_description")];
+        const [code, error, error_description] = [
+            params.get("code"),
+            params.get("error"),
+            params.get("error_description"),
+        ];
         if (code !== null) {
             createAccessToken(code);
             res.writeHead(200);
