@@ -32,7 +32,7 @@ const getCategories = async (
     });
 
     if (tistory.status === "200") {
-        return tistory.items.categories;
+        return tistory.item.categories;
     } else {
         throw new Error(
             `${ERROR_MESSAGES.TistoryAPIError}: ${tistory.error_message}`
