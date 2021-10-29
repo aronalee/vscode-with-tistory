@@ -32,7 +32,7 @@ const getCategories = async (
     });
 
     if (tistory.status === "200") {
-        return tistory.item.categories;
+        return tistory.items.categories;
     } else {
         throw new Error(
             `${ERROR_MESSAGES.TistoryAPIError}: ${tistory.error_message}`
@@ -76,6 +76,8 @@ const readFile = async (
             if (lineNumber === 0 && line !== "---") {
                 throw new Error(ERROR_MESSAGES.FailParsing);
             } else if (lineNumber === 0 && line === "---") {
+                lineNumber++;
+                continue;
             } else if (lineNumber > 0 && line !== "---") {
                 const parsedArray = parsingOption(line);
                 if (parsedArray.length > 0) {
@@ -143,6 +145,26 @@ const uploadNewBlog = async (postedData: PostInfo): Promise<TistoryFormat> => {
     return tistory as TistoryFormat;
 };
 
+const getPostInfo = async (
+    postId: number,
+    accessToken: string,
+    blog: BlogInfo
+) => {
+    const {
+        data: { tistory },
+    } = await axios({
+        method: "get",
+        url: API_URI.READ_POST,
+        params: {
+            access_token: accessToken,
+            output: "json",
+            blogName: blog.name,
+            postId: postId,
+        },
+    });
+    return tistory;
+};
+
 export const postBlog = async (): Promise<string> => {
     const document = vscode.window.activeTextEditor?.document;
     if (document?.languageId === "markdown") {
@@ -180,26 +202,15 @@ export const postBlog = async (): Promise<string> => {
             if (!options.postId) {
                 responseTistory = await uploadNewBlog(postedData);
             } else {
-                const { data } = await axios.get(API_URI.READ_POST, {
-                    params: {
-                        access_token: accessToken,
-                        output: "json",
-                        blogName: selectedBlog.name,
-                        postId: options.postId,
-                    },
-                });
-                const responseBlogInfo = data.tistory;
-                let currentBlogDateTime: number;
-                if (responseBlogInfo.status === "200") {
-                    currentBlogDateTime = parseInt(responseBlogInfo.item.date);
-                } else {
-                    throw new Error(
-                        `${ERROR_MESSAGES.TistoryAPIError}: ${responseBlogInfo.error_message}`
-                    );
-                }
-                if (parseInt(options.date) < currentBlogDateTime) {
-                }
+                // TODO: postId를가진 블로그가 실제로 존재하는지 확인
 
+                // TODO: date에 기록된 날짜가 현재시간보다 더 클때만 지정, 아니면 티스토리에 저장된 시간으로 표기
+                const responseBlogInfo = await getPostInfo(
+                    options.postId,
+                    accessToken,
+                    selectedBlog
+                );
+                let currentBlogDateTime: number;
                 const {
                     data: { tistory },
                 } = await axios({

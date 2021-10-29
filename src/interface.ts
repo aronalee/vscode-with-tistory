@@ -36,10 +36,28 @@ export interface PostInfo {
     postId?: string;
 }
 
+export interface PushPostInfo {
+    url: string;
+    secondaryUrl: string;
+    title: string;
+    content: string;
+    categoryId: string;
+    postUrl: string;
+    visibility: string;
+    acceptComment: string;
+    acceptTrackback: string;
+    tags: {
+        tag: Array<string>;
+    };
+    comments: string;
+    trackbacks: string;
+    date: string;
+}
+
 export interface TistoryFormat {
     status: string;
     error_message?: string;
-    item?: BlogInfo | PostInfo;
+    items?: { categories: Array<CategoryInfo> } | BlogInfo;
     url?: string;
 }
 
