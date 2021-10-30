@@ -1,15 +1,15 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
-import axios, { AxiosResponse } from "axios";
+import axios from "axios";
 import * as fs from "fs";
 import { createInterface } from "readline";
 import { API_URI, PROPERTIES, VISIBILITY } from "../../Enum";
 import { getBlogInfo } from "../../apis";
 import { getConfigProperty } from "../../commons";
-import { BlogInfo, TistoryFormat } from "../../interface";
+import { BlogInfo } from "../../interface";
 import * as MarkdownIt from "markdown-it";
 import * as MarkdownItEmoji from "markdown-it-emoji";
-import { format } from "path";
+import Token = require("markdown-it/lib/token");
 
 const accessToken = getConfigProperty(PROPERTIES.Token);
 const dateTimeFormat = "2021-09-17 03:24:00";
@@ -34,107 +34,6 @@ before("Get Default Blog ", async () => {
 });
 
 describe("Extension Test", () => {
-    describe("Markdown Test", () => {
-        /// init markdown-it
-        const md = new MarkdownIt();
-        // permit emoji
-        md.use(MarkdownItEmoji);
-        // get current Workspace
-        const workspaces = vscode.workspace.workspaceFolders;
-        assert.ok(workspaces);
-        const uri = workspaces[0].uri;
-        it("Test Markdown2Html", () => {
-            const convertedHtml = md.render("# header1");
-            assert.strictEqual(convertedHtml, "<h1>header1</h1>\n");
-        });
-        it("Test emoji", () => {
-            const text = "emoji ✔";
-            const htmlData = md.render(text).trim();
-            assert.strictEqual(htmlData, `<p>${text}</p>`);
-        });
-        it("Parsing Option", async () => {
-            const cmpOption = {
-                title: "title name",
-                date: "9999-09-17 12:23:34",
-                post: "private",
-                tag: ["javascript", "자바스크립트"],
-                comments: "true",
-            };
-            let markdownData: string = "";
-            async function readOneLine(
-                filename: string,
-                parsedOption: any
-            ): Promise<any> {
-                const fileStream = fs.createReadStream(filename);
-                const readLineInterface = createInterface({
-                    input: fileStream,
-                    crlfDelay: Infinity,
-                });
-                let endParsing = false;
-                let lineNumber = 0;
-                let parsingTag = false;
-                // Regex: find option info
-                const kindOfOption = [
-                    "title",
-                    "date",
-                    "post",
-                    "tag",
-                    "comments",
-                    "password",
-                    "category",
-                    "url",
-                    "postId",
-                ];
-                const regexOption = new RegExp(
-                    `^(?<key>${kindOfOption.join("|")}):\s*?(?<value>.+)?`,
-                    "u"
-                );
-                const tagOptionRegex = new RegExp("(?<=^-\x20).*", "u");
-                for await (const line of readLineInterface) {
-                    if (lineNumber === 0) {
-                        if (line !== "---") {
-                            new Error("Fail Parsing option");
-                        }
-                    } else if (
-                        !endParsing &&
-                        lineNumber > 0 &&
-                        line === "---"
-                    ) {
-                        endParsing = true;
-                    } else if (!endParsing) {
-                        const groups = line.match(regexOption)?.groups;
-                        if (groups?.key && groups?.value) {
-                            const { key, value } = groups;
-                            parsedOption[key] = value.trim();
-                            parsingTag = false;
-                        } else if (groups?.key === "tag") {
-                            parsedOption.tag = [];
-                            parsingTag = true;
-                        } else if (parsingTag) {
-                            const tagOption = line.match(tagOptionRegex);
-                            if (tagOption) {
-                                parsedOption.tag.push(tagOption[0]);
-                            } else {
-                                throw new Error("Error");
-                            }
-                        } else {
-                            throw new Error("Error");
-                        }
-                    } else {
-                        markdownData += line;
-                    }
-                    lineNumber++;
-                }
-                return parsedOption;
-            }
-            const parsedOption = await readOneLine(
-                `${uri.fsPath}\\parsingOption.md`,
-                {}
-            );
-            assert.deepStrictEqual(parsedOption, cmpOption);
-        });
-    });
-
     describe("VSCode test", () => {
         it("get editor", () => {
             const { window } = vscode;
@@ -261,7 +160,7 @@ describe("Tistory Test", () => {
         const formData = new FormData();
         formData.append("access_token", accessToken);
         formData.append("output", "json");
-        formData.append("blogName", "greenflamingo");
+        formData.append("blogName", selectedBlog.name);
         formData.append("uploadedfile", buffer, "[5-1]1920x1080.jpg");
         const {
             data,
@@ -292,5 +191,117 @@ describe("Tistory Test", () => {
         });
         assert.strictEqual(tistory.error_message, undefined);
         assert.strictEqual(tistory.status, "200");
+    });
+});
+
+describe("Markdown Test", () => {
+    /// init markdown-it
+    const md = new MarkdownIt();
+    // permit emoji
+    md.use(MarkdownItEmoji);
+    // get current Workspace
+    const workspaces = vscode.workspace.workspaceFolders;
+    assert.ok(workspaces);
+    const uri = workspaces[0].uri;
+    it("Test Markdown2Html", () => {
+        const convertedHtml = md.render("# header1");
+        assert.strictEqual(convertedHtml, "<h1>header1</h1>\n");
+    });
+    it("Test emoji", () => {
+        const text = "emoji ✔";
+        const htmlData = md.render(text).trim();
+        assert.strictEqual(htmlData, `<p>${text}</p>`);
+    });
+    it("Parsing Option", async () => {
+        const cmpOption = {
+            title: "title name",
+            date: "9999-09-17 12:23:34",
+            post: "private",
+            tag: ["javascript", "자바스크립트"],
+            comments: "true",
+        };
+        let markdownData: string = "";
+        async function readOneLine(
+            filename: string,
+            parsedOption: any
+        ): Promise<any> {
+            const fileStream = fs.createReadStream(filename);
+            const readLineInterface = createInterface({
+                input: fileStream,
+                crlfDelay: Infinity,
+            });
+            let endParsing = false;
+            let lineNumber = 0;
+            let parsingTag = false;
+            // Regex: find option info
+            const kindOfOption = [
+                "title",
+                "date",
+                "post",
+                "tag",
+                "comments",
+                "password",
+                "category",
+                "url",
+                "postId",
+            ];
+            const regexOption = new RegExp(
+                `^(?<key>${kindOfOption.join("|")}):\s*?(?<value>.+)?`,
+                "u"
+            );
+            const tagOptionRegex = new RegExp("(?<=^-\x20).*", "u");
+            for await (const line of readLineInterface) {
+                if (lineNumber === 0) {
+                    if (line !== "---") {
+                        new Error("Fail Parsing option");
+                    }
+                } else if (!endParsing && lineNumber > 0 && line === "---") {
+                    endParsing = true;
+                } else if (!endParsing) {
+                    const groups = line.match(regexOption)?.groups;
+                    if (groups?.key && groups?.value) {
+                        const { key, value } = groups;
+                        parsedOption[key] = value.trim();
+                        parsingTag = false;
+                    } else if (groups?.key === "tag") {
+                        parsedOption.tag = [];
+                        parsingTag = true;
+                    } else if (parsingTag) {
+                        const tagOption = line.match(tagOptionRegex);
+                        if (tagOption) {
+                            parsedOption.tag.push(tagOption[0]);
+                        } else {
+                            throw new Error("Error");
+                        }
+                    } else {
+                        throw new Error("Error");
+                    }
+                } else {
+                    markdownData += line;
+                }
+                lineNumber++;
+            }
+            return parsedOption;
+        }
+        const parsedOption = await readOneLine(
+            `${uri.fsPath}\\parsingOption.md`,
+            {}
+        );
+        assert.deepStrictEqual(parsedOption, cmpOption);
+    });
+    it("Convert imagePath", async () => {
+        const iterator = require("markdown-it-for-inline");
+        md.use(
+            iterator,
+            "uploadImage",
+            "image",
+            (tokens: Token[], idx: number) => {
+                const token = tokens[idx];
+                token.attrSet("src", `img/${token.attrGet("src")}`);
+            }
+        );
+        const result = md.render("![test](./test.jpg)");
+        assert.match(result, /img\/\.\/test.jpg/);
+        console.log(result);
     });
 });
