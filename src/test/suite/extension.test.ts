@@ -4,12 +4,14 @@ import axios from "axios";
 import * as fs from "fs";
 import { createInterface } from "readline";
 import { API_URI, PROPERTIES, VISIBILITY } from "../../Enum";
-import { getBlogInfo } from "../../apis";
+import { getBlogInfo, readFile } from "../../apis";
 import { getConfigProperty } from "../../commons";
 import { BlogInfo } from "../../interface";
 import * as MarkdownIt from "markdown-it";
 import * as MarkdownItEmoji from "markdown-it-emoji";
 import Token = require("markdown-it/lib/token");
+import { it } from "mocha";
+import path = require("path");
 
 const accessToken = getConfigProperty(PROPERTIES.Token);
 const dateTimeFormat = "2021-09-17 03:24:00";
@@ -47,8 +49,18 @@ describe("Extension Test", () => {
                 "/d:/blog/vscode-with-tistory-test/parsingOption.md"
             );
         });
+        it("Check External Image", async () => {
+            const name1 =
+                "https://cdn.pixabay.com/photo/2017/11/12/09/05/black-2941843_960_720.jpg";
+            const name2 = "./coffee.jpg";
+            const name3 = "D:\\blog\\vscode-with-tistory-test\\coffee.jpg";
+            assert.strictEqual(vscode.Uri.parse(name1).scheme, "https");
+            assert.strictEqual(vscode.Uri.parse(name2).scheme, "file");
+            assert.strictEqual(vscode.Uri.parse(name3).scheme, "file");
+        });
     });
 });
+
 describe("Tistory Test", () => {
     describe.skip("Post Blog1. Set Timestamp", async () => {
         const {
@@ -152,16 +164,23 @@ describe("Tistory Test", () => {
         });
         assert.ok(categories);
     });
-    it("Upload Image", async () => {
-        const buffer = fs.readFileSync(
-            "D:\\blog\\vscode-with-tistory-test\\[5-1]1920x1080.jpg"
+    const uploadImage = async (imagePath: string): Promise<string> => {
+        const {
+            window: { activeTextEditor },
+        } = vscode;
+
+        const imageAbsolutePath = path.resolve(
+            activeTextEditor!.document?.uri.fsPath,
+            "../",
+            imagePath
         );
+        const buffer = fs.readFileSync(imageAbsolutePath);
         const FormData = await import("form-data");
         const formData = new FormData();
         formData.append("access_token", accessToken);
         formData.append("output", "json");
         formData.append("blogName", selectedBlog.name);
-        formData.append("uploadedfile", buffer, "[5-1]1920x1080.jpg");
+        formData.append("uploadedfile", buffer, "coffee.jpg");
         const {
             data,
             data: { tistory },
@@ -174,7 +193,19 @@ describe("Tistory Test", () => {
         });
         assert.ok(data.tistory);
         assert.strictEqual(tistory.status, "200");
+        return tistory.url;
+    };
+    it("Upload Absolute Path Image", async () => {
+        const url = await uploadImage(
+            "D:\\blog\\vscode-with-tistory-test\\coffee.jpg"
+        );
+        console.log("absolute image", url);
     });
+    it("Upload Relative Path Image", async () => {
+        const url = await uploadImage("./coffee.jpg");
+        console.log("relative image", url);
+    });
+
     let postId = 16;
     before("Get Post Info", async () => {
         const {
@@ -302,6 +333,5 @@ describe("Markdown Test", () => {
         );
         const result = md.render("![test](./test.jpg)");
         assert.match(result, /img\/\.\/test.jpg/);
-        console.log(result);
     });
 });

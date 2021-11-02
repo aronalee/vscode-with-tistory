@@ -53,7 +53,7 @@ const parsingOption = (line: string): Array<string | boolean> => {
         return [""];
     }
 };
-const readFile = async (
+export const readFile = async (
     uri: vscode.Uri,
     blogName: string
 ): Promise<[ParsedOptions, string]> => {
@@ -202,9 +202,6 @@ export const postBlog = async (): Promise<string> => {
             if (!options.postId) {
                 responseTistory = await uploadNewBlog(postedData);
             } else {
-                // TODO: postId를가진 블로그가 실제로 존재하는지 확인
-
-                // TODO: date에 기록된 날짜가 현재시간보다 더 클때만 지정, 아니면 티스토리에 저장된 시간으로 표기
                 const responseBlogInfo = await getPostInfo(
                     options.postId,
                     accessToken,
