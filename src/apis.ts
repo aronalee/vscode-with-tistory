@@ -56,7 +56,7 @@ const parsingOption = (line: string): Array<string | boolean> => {
 export const readFile = async (
     uri: vscode.Uri,
     blogName: string
-): Promise<[ParsedOptions, string]> => {
+): Promise<[ParsedOptions, string, number]> => {
     const { createReadStream } = await import("fs");
     const { createInterface } = await import("readline");
 
@@ -66,6 +66,7 @@ export const readFile = async (
     let endParsing = false;
     let parsingTag = false;
     let buffer = [""];
+    let postIdLocationLine = 0;
     const rl = createInterface({
         input: createReadStream(uri.fsPath),
         crlfDelay: Infinity,
@@ -95,6 +96,7 @@ export const readFile = async (
                     }
                 }
             } else {
+                postIdLocationLine = lineNumber;
                 endParsing = true;
             }
         } else {
@@ -103,7 +105,7 @@ export const readFile = async (
         }
         lineNumber++;
     }
-    return [options, buffer.join("")];
+    return [options, buffer.join(""), postIdLocationLine];
 };
 
 const MD2HTML = (content: string): string => {

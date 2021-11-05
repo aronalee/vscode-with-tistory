@@ -195,13 +195,13 @@ describe("Tistory Test", () => {
         assert.strictEqual(tistory.status, "200");
         return tistory.url;
     };
-    it("Upload Absolute Path Image", async () => {
+    describe.skip("Upload Absolute Path Image", async () => {
         const url = await uploadImage(
             "D:\\blog\\vscode-with-tistory-test\\coffee.jpg"
         );
         console.log("absolute image", url);
     });
-    it("Upload Relative Path Image", async () => {
+    describe.skip("Upload Relative Path Image", async () => {
         const url = await uploadImage("./coffee.jpg");
         console.log("relative image", url);
     });
@@ -209,7 +209,7 @@ describe("Tistory Test", () => {
         const document = vscode.window.activeTextEditor?.document;
         assert.strictEqual(document?.languageId, "markdown");
         const blogName = selectedBlog.name;
-        const [options, markdownContent] = await readFile(
+        const [options, markdownContent, postIdLocation] = await readFile(
             document.uri,
             blogName
         );
@@ -291,8 +291,18 @@ describe("Tistory Test", () => {
             validateStatus: (status: number) => status >= 200 && status < 500,
         });
         assert.ok(tistory);
+        assert.ok(tistory.postId);
         assert.strictEqual(tistory.status, "200");
         console.log(tistory.url);
+        const activeTextEditor = vscode.window.activeTextEditor;
+        activeTextEditor?.selection;
+        activeTextEditor!.edit((editorBuilder) => {
+            const position = new vscode.Position(
+                postIdLocation,
+                "".charCodeAt(0)
+            );
+            editorBuilder.insert(position, `postId: ${tistory.postId}\n`);
+        });
     });
     let postId = 16;
     before("Get Post Info", async () => {
@@ -311,6 +321,7 @@ describe("Tistory Test", () => {
         assert.strictEqual(tistory.error_message, undefined);
         assert.strictEqual(tistory.status, "200");
     });
+    it("Post Blog4: Update Exisit Post", async () => {});
 });
 
 describe("Markdown Test", () => {
