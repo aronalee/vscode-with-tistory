@@ -36,22 +36,26 @@ export interface PostInfo {
     postId?: string;
 }
 
-export interface PushPostInfo {
-    url: string;
-    secondaryUrl: string;
-    title: string;
-    content: string;
-    categoryId: string;
-    postUrl: string;
-    visibility: string;
-    acceptComment: string;
-    acceptTrackback: string;
-    tags: {
-        tag: Array<string>;
+export interface TistoryPost {
+    tistory: {
+        item?: {
+            url: string;
+            secondaryUrl: string;
+            title: string;
+            content: string;
+            categoryId: string;
+            postUrl: string;
+            visibility: string;
+            acceptComment: string;
+            acceptTrackback: string;
+            tags: {
+                tag: Array<string>;
+            };
+            comments: string;
+            trackbacks: string;
+            date: string;
+        };
     };
-    comments: string;
-    trackbacks: string;
-    date: string;
 }
 
 export interface TistoryFormat {
@@ -68,3 +72,12 @@ export interface CategoryInfo {
     label: string;
     entries: string;
 }
+
+interface Tistory {
+    tistory: {
+        status: string;
+        error_message?: string;
+    };
+}
+
+export type ResponsePostInfo = Tistory & TistoryPost;

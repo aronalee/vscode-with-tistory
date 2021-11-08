@@ -1,10 +1,9 @@
-import { TextEditorCursorStyle, ThemeIcon } from "vscode";
 import { ERROR_MESSAGES, VISIBILITY } from "./Enum";
 import { CategoryInfo } from "./interface";
 
 export class ParsedOptions {
     private _title?: string;
-    private _postId?: number;
+    private _postId?: string;
     private _url?: string;
     private _date?: Date;
     private _tag?: string[];
@@ -17,6 +16,7 @@ export class ParsedOptions {
     constructor(categoryList: Array<CategoryInfo>) {
         this._tag = new Array<string>();
         this._categoryList = categoryList;
+        this._comments = true;
     }
 
     public set title(v: string) {
@@ -27,12 +27,12 @@ export class ParsedOptions {
         return this._title ? this._title : "";
     }
 
-    public set postId(v: number) {
+    public set postId(v: string) {
         this._postId = v;
     }
 
-    public get postId(): number {
-        return this._postId ? this.postId : 0;
+    public get postId(): string {
+        return this._postId ? this.postId : "0";
     }
 
     public set tag(tagOption: string) {
@@ -41,15 +41,19 @@ export class ParsedOptions {
     public get tag(): string {
         return this._tag!.join(",");
     }
-    public set comments(commentString: string) {
-        if (commentString === "false") {
+    public set comments(isComment: string) {
+        if (isComment === "false") {
             this._comments = false;
         } else {
             this._comments = true;
         }
     }
     public get comments(): string {
-        return this._comments ? this._comments.toString() : "true";
+        if (this._comments) {
+            return "1";
+        } else {
+            return "0";
+        }
     }
     public set date(dateString: string) {
         const today = new Date();
@@ -70,7 +74,11 @@ export class ParsedOptions {
         }
     }
     public get date(): string {
-        return this._date ? this._date.getTime().toString() : "";
+        if (this._date) {
+            return Math.floor(this._date.getTime() / 1000).toString();
+        } else {
+            return "";
+        }
     }
     public set post(postCategory: string) {
         if (/^public$|^true$/i.test(postCategory)) {

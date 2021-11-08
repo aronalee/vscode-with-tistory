@@ -1,12 +1,12 @@
 import * as assert from "assert";
 import * as vscode from "vscode";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios";
 import * as fs from "fs";
 import { createInterface } from "readline";
 import { API_URI, PROPERTIES, VISIBILITY } from "../../Enum";
 import { getBlogInfo, readFile } from "../../apis";
 import { getConfigProperty } from "../../commons";
-import { BlogInfo } from "../../interface";
+import { BlogInfo, PostInfo, ResponsePostInfo } from "../../interface";
 import * as MarkdownIt from "markdown-it";
 import * as MarkdownItEmoji from "markdown-it-emoji";
 import Token = require("markdown-it/lib/token");
@@ -205,7 +205,7 @@ describe("Tistory Test", () => {
         const url = await uploadImage("./coffee.jpg");
         console.log("relative image", url);
     });
-    it("Post Blog3: Upload Markdown && Image", async () => {
+    describe.skip("Post Blog3: Upload Markdown && Image", async () => {
         const document = vscode.window.activeTextEditor?.document;
         assert.strictEqual(document?.languageId, "markdown");
         const blogName = selectedBlog.name;
@@ -304,24 +304,120 @@ describe("Tistory Test", () => {
             editorBuilder.insert(position, `postId: ${tistory.postId}\n`);
         });
     });
-    let postId = 16;
-    before("Get Post Info", async () => {
-        const {
-            data: { tistory },
-        } = await axios({
+    // 500 Internal Error
+    it("Post Blog4: Update Exist Post", async () => {
+        const document = vscode.window.activeTextEditor?.document;
+        assert.strictEqual(document?.languageId, "markdown");
+        const blogName = selectedBlog.name;
+        const [options, markdownContent, postIdLocation] = await readFile(
+            document.uri,
+            blogName
+        );
+
+        //md2html
+        const md = new MarkdownIt();
+        md.use(require("markdown-it-emoji"));
+        const tokens = md.parse(markdownContent, {});
+        //uploading image use BFS
+        const queue: Array<Token> = [];
+        queue.push(...tokens);
+        while (queue.length > 0) {
+            const token = queue.shift();
+            if (token?.children) {
+                token.children.forEach((child) => queue.push(child));
+            }
+            const inputImageSrc = token!.attrGet("src");
+            if (
+                token?.type === "image" &&
+                token.tag === "img" &&
+                inputImageSrc
+            ) {
+                const imageAbsolutePath = path.resolve(
+                    document.uri.fsPath,
+                    "../",
+                    inputImageSrc
+                );
+                const uri = vscode.Uri.parse(inputImageSrc);
+                if (uri.scheme === "https" || uri.scheme === "http") {
+                    continue;
+                } else {
+                    const FormData = require("form-data");
+                    const formData = new FormData();
+                    const buffer = fs.readFileSync(imageAbsolutePath);
+                    const splitPath = uri.path.split("/");
+                    const filename = splitPath.pop();
+                    formData.append("access_token", accessToken);
+                    formData.append("output", "json");
+                    formData.append("blogName", selectedBlog.name);
+                    formData.append("uploadedfile", buffer, filename);
+                    const {
+                        data: { tistory },
+                    } = await axios({
+                        method: "post",
+                        url: API_URI.UPLOAD_FILE,
+                        headers: formData.getHeaders(),
+                        data: formData,
+                        validateStatus: (status: number) =>
+                            status >= 200 && status < 500,
+                    });
+                    assert.ok(tistory);
+                    assert.strictEqual(tistory.status, "200");
+                    token.attrSet("src", tistory.url);
+                }
+            }
+        }
+        // Markdown Token to HTML
+        const content = md.renderer.render(tokens, {}, {});
+        const axiosResponse: AxiosResponse<ResponsePostInfo> = await axios({
             method: "get",
             url: API_URI.READ_POST,
             params: {
                 access_token: accessToken,
-                output: "json",
                 blogName: selectedBlog.name,
-                postId: postId,
+                output: "json",
+                postId: options.postId,
             },
+            validateStatus: (status: number) => status >= 200 && status < 500,
         });
-        assert.strictEqual(tistory.error_message, undefined);
+        const postStatus = axiosResponse.data.tistory.status;
+        assert.strictEqual(postStatus, "200");
+
+        let updatePostInfo: PostInfo = {
+            access_token: accessToken,
+            output: "json",
+            blogName: selectedBlog.name,
+            title: options.title,
+            visibility: options.post,
+            password: options.password,
+            tag: options.tag,
+            category: options.category,
+            slogan: options.url,
+            acceptComment: options.comments,
+            postId: options.postId,
+            content,
+        };
+        //check date
+        const currentTime = Math.floor(new Date().getTime() / 1000);
+        if (parseInt(options.date) > currentTime) {
+            updatePostInfo["published"] = options.date;
+        }
+        // push new post
+        assert.ok(accessToken);
+        const response = await axios({
+            method: "post",
+            url: API_URI.UPDATE_POST,
+            data: updatePostInfo,
+            validateStatus: (status: number) => status >= 200 && status <= 500,
+        });
+        const {
+            data: { tistory },
+        } = response;
+
+        assert.ok(tistory);
+        assert.ok(tistory.postId);
         assert.strictEqual(tistory.status, "200");
+        console.log(tistory.url);
     });
-    it("Post Blog4: Update Exisit Post", async () => {});
 });
 
 describe("Markdown Test", () => {

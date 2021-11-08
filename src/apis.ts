@@ -148,7 +148,7 @@ const uploadNewBlog = async (postedData: PostInfo): Promise<TistoryFormat> => {
 };
 
 const getPostInfo = async (
-    postId: number,
+    postId: string,
     accessToken: string,
     blog: BlogInfo
 ) => {
