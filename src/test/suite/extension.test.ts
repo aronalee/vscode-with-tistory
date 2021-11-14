@@ -621,17 +621,18 @@ describe("Markdown Test", () => {
         assert.deepStrictEqual(parsedOption, cmpOption);
     });
     it("Convert imagePath", async () => {
-        const iterator = require("markdown-it-for-inline");
-        md.use(
-            iterator,
-            "uploadImage",
-            "image",
-            (tokens: Token[], idx: number) => {
-                const token = tokens[idx];
-                token.attrSet("src", `img/${token.attrGet("src")}`);
-            }
-        );
-        const result = md.render("![test](./test.jpg)");
-        assert.match(result, /img\/\.\/test.jpg/);
+        // 모듈 삭제함
+        // const iterator = require("markdown-it-for-inline");
+        // md.use(
+        //     iterator,
+        //     "uploadImage",
+        //     "image",
+        //     (tokens: Token[], idx: number) => {
+        //         const token = tokens[idx];
+        //         token.attrSet("src", `img/${token.attrGet("src")}`);
+        //     }
+        // );
+        // const result = md.render("![test](./test.jpg)");
+        // assert.match(result, /img\/\.\/test.jpg/);
     });
 });
