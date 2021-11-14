@@ -1,3 +1,10 @@
+export interface Tistory {
+    tistory: {
+        status: string;
+        error_message?: string;
+    };
+}
+
 export interface BlogInfo {
     name: string;
     url: string;
@@ -35,36 +42,6 @@ export interface PostInfo {
     password?: string;
     postId?: string;
 }
-
-export interface TistoryPost {
-    tistory: {
-        item?: {
-            url: string;
-            secondaryUrl: string;
-            title: string;
-            content: string;
-            categoryId: string;
-            postUrl: string;
-            visibility: string;
-            acceptComment: string;
-            acceptTrackback: string;
-            tags: {
-                tag: Array<string>;
-            };
-            comments: string;
-            trackbacks: string;
-            date: string;
-        };
-    };
-}
-
-export interface TistoryFormat {
-    status: string;
-    error_message?: string;
-    items?: { categories: Array<CategoryInfo> } | BlogInfo;
-    url?: string;
-}
-
 export interface CategoryInfo {
     id: string;
     name: string;
@@ -72,12 +49,30 @@ export interface CategoryInfo {
     label: string;
     entries: string;
 }
-
-interface Tistory {
-    tistory: {
-        status: string;
-        error_message?: string;
+export interface BlogInfos {
+    status: string;
+    item: {
+        id: string;
+        userId: string;
+        blogs: BlogInfo[];
     };
 }
 
-export type ResponsePostInfo = Tistory & TistoryPost;
+export interface CategoryList {
+    status: string;
+    item: {
+        categories: Array<CategoryInfo>;
+    };
+}
+
+export interface ResponseFileUpload {
+    status: string;
+    url: string;
+    replacer: string;
+}
+
+export interface ResponsePost extends Tistory {
+    status: string;
+    url: string;
+    postId: string;
+}

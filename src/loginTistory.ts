@@ -11,36 +11,37 @@ import { getConfigProperty } from "./commons";
 
 const setAccessToken = (token: string): void => {
     const configuration = vscode.workspace.getConfiguration(PROPERTIES.Title);
-    if (configuration.has(PROPERTIES.Token)) {
-        configuration.update(PROPERTIES.Token, token);
+    if (configuration.has(PROPERTIES.TOKEN)) {
+        configuration.update(PROPERTIES.TOKEN, token);
     } else {
-        throw new Error(ERROR_MESSAGES.HasToken);
+        throw new Error(ERROR_MESSAGES.HAS_TOKEN);
     }
 };
 
-export const certifyTistory = (
+export const openAuthPage = (
     accessToken: string,
     clientID: string,
-    redirectURI: string
+    redirectURI: string,
+    clientSecret: string
 ): KIND_OF_CERTIFICATE => {
-    if (!(clientID && redirectURI)) {
-        return KIND_OF_CERTIFICATE.HasNotProperty;
+    if (!(clientID && redirectURI && clientSecret)) {
+        return KIND_OF_CERTIFICATE.HAS_NOT_PROPERTY;
     } else if (!accessToken) {
         vscode.env.openExternal(
             vscode.Uri.parse(
                 `${API_URI.AUTHORIZATION}?client_id=${clientID}&redirect_uri=${redirectURI}&response_type=code`
             )
         );
-        return KIND_OF_CERTIFICATE.OpenBrowser;
+        return KIND_OF_CERTIFICATE.OPEN_BROWSER;
     } else {
-        return KIND_OF_CERTIFICATE.HasToken;
+        return KIND_OF_CERTIFICATE.HAS_TOKEN;
     }
 };
 
 export const createAccessToken = async (code: string): Promise<void> => {
-    const client_id: string = getConfigProperty(PROPERTIES.ClientID);
-    const client_secret: string = getConfigProperty(PROPERTIES.ClientSecret);
-    const redirect_uri: string = getConfigProperty(PROPERTIES.RedirectURI);
+    const client_id: string = getConfigProperty(PROPERTIES.CLIENT_ID);
+    const client_secret: string = getConfigProperty(PROPERTIES.CLIENT_SECRET);
+    const redirect_uri: string = getConfigProperty(PROPERTIES.REDIRECT_URI);
     if (client_id && client_secret && client_secret) {
         const {
             data: { access_token },
@@ -52,10 +53,11 @@ export const createAccessToken = async (code: string): Promise<void> => {
                 code,
                 grant_type: "authorization_code",
             },
+            validateStatus: (status: number) => status >= 200 && status < 500,
         });
         setAccessToken(access_token);
         stopClient();
     } else {
-        throw new Error(ERROR_MESSAGES.OAuth2Property);
+        throw new Error(ERROR_MESSAGES.INVALID_OAUTH2_PROPERTY);
     }
 };

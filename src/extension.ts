@@ -1,62 +1,29 @@
-import { AxiosError } from "axios";
 import * as vscode from "vscode";
-import { postBlog } from "./apis";
-import { getConfigProperty } from "./commons";
-import { certifyTistory } from "./loginTistory";
-import { runClient, stopClient } from "./Client";
-import {
-    ERROR_MESSAGES,
-    INFO_MESSAGES,
-    KIND_OF_CERTIFICATE,
-    PROPERTIES,
-} from "./Enum";
+import { pushPost } from "./apis";
+import { authTistory } from "./apis";
+import { stopClient } from "./Client";
+import { ERROR_MESSAGES, INFO_MESSAGES } from "./Enum";
 
 export function activate(context: vscode.ExtensionContext) {
     const loginTistory = vscode.commands.registerCommand(
         "vscode-with-tistory.login",
         () => {
             try {
-                const redirectURI: string = getConfigProperty(
-                    PROPERTIES.RedirectURI
-                );
-                const clientID: string = getConfigProperty(PROPERTIES.ClientID);
-                const accessToken: string = getConfigProperty(PROPERTIES.Token);
-                let port = 5500;
-                if (redirectURI) {
-                    const isPort = redirectURI?.match(/(?<=\:)\d{1,5}/);
-                    if (isPort) {
-                        port = parseInt(isPort[0]);
-                    }
-                }
-                runClient(port);
-                const result = certifyTistory(
-                    accessToken,
-                    clientID,
-                    redirectURI
-                );
-                if (result === KIND_OF_CERTIFICATE.OpenBrowser) {
-                    vscode.window.showInformationMessage(
-                        INFO_MESSAGES.OpenBrowser
-                    );
-                } else if (result === KIND_OF_CERTIFICATE.HasToken) {
-                    throw new Error(ERROR_MESSAGES.HasToken);
-                } else if (result === KIND_OF_CERTIFICATE.HasNotProperty) {
-                    throw new Error(ERROR_MESSAGES.OAuth2Property);
-                }
+                authTistory();
             } catch (e: any) {
                 vscode.window.showErrorMessage(e.message);
             }
         }
     );
     const pushOne = vscode.commands.registerCommand(
-        "vscode-with-tistory.pushOrUpdatePost",
+        "vscode-with-tistory.push_post",
         () => {
-            vscode.window.showInformationMessage(INFO_MESSAGES.RunPosting);
-            postBlog()
+            vscode.window.showInformationMessage(INFO_MESSAGES.POSTING);
+            pushPost()
                 .then((url: string) => {
                     vscode.window
                         .showInformationMessage(
-                            `${INFO_MESSAGES.PushPost}:${url}`,
+                            `${INFO_MESSAGES.PUSH_POST_DONE}:${url}`,
                             "이동하기"
                         )
                         .then((selection) => {
@@ -70,7 +37,7 @@ export function activate(context: vscode.ExtensionContext) {
                         vscode.window.showErrorMessage(error.message);
                     } else {
                         vscode.window.showErrorMessage(
-                            ERROR_MESSAGES.NotDesignateError
+                            ERROR_MESSAGES.NOT_DESIGNATE_ERROR
                         );
                     }
                 });

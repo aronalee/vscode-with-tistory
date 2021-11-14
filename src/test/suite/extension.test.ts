@@ -3,17 +3,23 @@ import * as vscode from "vscode";
 import axios, { AxiosResponse } from "axios";
 import * as fs from "fs";
 import { createInterface } from "readline";
-import { API_URI, PROPERTIES, VISIBILITY } from "../../Enum";
-import { getBlogInfo, readFile } from "../../apis";
-import { getConfigProperty } from "../../commons";
-import { BlogInfo, PostInfo, ResponsePostInfo } from "../../interface";
+import { API_URI, ERROR_MESSAGES, PROPERTIES, VISIBILITY } from "../../Enum";
+import { getConfigProperty, requestTistory } from "../../commons";
+import {
+    BlogInfo,
+    BlogInfos,
+    CategoryInfo,
+    CategoryList,
+    PostInfo,
+} from "../../interface";
 import * as MarkdownIt from "markdown-it";
 import * as MarkdownItEmoji from "markdown-it-emoji";
 import Token = require("markdown-it/lib/token");
 import { it } from "mocha";
 import path = require("path");
+import { ParsedOptions } from "../../Classes";
 
-const accessToken = getConfigProperty(PROPERTIES.Token);
+const accessToken = getConfigProperty(PROPERTIES.TOKEN);
 const dateTimeFormat = "2021-09-17 03:24:00";
 const timestamp = new Date(dateTimeFormat).getTime() / 1000;
 let selectedBlog: BlogInfo;
@@ -29,6 +35,104 @@ const findBlog = (blogInfos: BlogInfo[], name: string): BlogInfo => {
     throw new Error("디폴트 블로그 미존재");
 };
 
+const getBlogInfo = async (): Promise<BlogInfo[] | any> => {
+    const accessToken: string = getConfigProperty(PROPERTIES.TOKEN);
+    if (accessToken) {
+        const tistory: Partial<BlogInfos> = await requestTistory({
+            method: "get",
+            url: API_URI.BLOG_INFO,
+            params: {
+                access_token: accessToken,
+                output: "json",
+            },
+        });
+        return tistory.item?.blogs;
+    } else {
+        throw new Error(ERROR_MESSAGES.HAS_NOT_TOKEN);
+    }
+};
+const getCategories = async (
+    blogName: string
+): Promise<Array<CategoryInfo>> => {
+    const tistory: Partial<CategoryList> = await requestTistory({
+        url: API_URI.CATEGORY_LIST,
+        method: "post",
+        params: {
+            access_token: getConfigProperty(PROPERTIES.TOKEN),
+            output: "json",
+            blogName,
+        },
+    });
+    return tistory.item!.categories;
+};
+const parsingOption = (line: string): Array<string | boolean> => {
+    const regex = new RegExp(
+        `^(?<key>title|date|post|tag|comments|password|category|url|postId):\s*?(?<value>.+)?`,
+        "u"
+    );
+    const groups = line.match(regex)?.groups;
+    if (groups?.key === "tag") {
+        return [groups.key];
+    } else if (groups?.key && groups?.value) {
+        return [groups.key, groups.value];
+    } else {
+        return [""];
+    }
+};
+const parsingTagOption = (line: string): string => {
+    const regex = /(?<=^-\x20).*/u;
+    const tagOption = line.match(regex);
+    if (tagOption?.length === 1) {
+        return tagOption[0];
+    } else {
+        return "";
+    }
+};
+const readFile = async (
+    document: vscode.TextDocument,
+    blogName: string
+): Promise<[ParsedOptions, string, number]> => {
+    const categoryList = await getCategories(blogName);
+    const options = new ParsedOptions(categoryList);
+    let endOptionLineNumber = 0;
+    let endParsing = false;
+    let parsingTag = false;
+
+    while (!endParsing) {
+        const line = document.lineAt(endOptionLineNumber).text;
+        // parsingOptions
+        if (endOptionLineNumber === 0 && line !== "---") {
+            throw new Error(ERROR_MESSAGES.FAIL_PARSING);
+        } else if (endOptionLineNumber === 0 && line === "---") {
+            endOptionLineNumber++;
+            continue;
+        } else if (endOptionLineNumber > 0 && line !== "---") {
+            const parsedArray = parsingOption(line);
+            if (parsedArray.length > 0) {
+                const isParsingSuccess = options.setOption(
+                    parsedArray,
+                    parsingTag
+                );
+                if (parsingTag) {
+                    options.tag = parsingTagOption(line);
+                }
+                if (isParsingSuccess) {
+                    parsingTag = false;
+                } else if (!isParsingSuccess) {
+                    parsingTag = true;
+                }
+            }
+        } else {
+            endParsing = true;
+            continue;
+        }
+        endOptionLineNumber++;
+    }
+    const content = document.getText(
+        new vscode.Range(endOptionLineNumber, 0, document.lineCount, 0)
+    );
+    return [options, content, endOptionLineNumber];
+};
 before("Get Default Blog ", async () => {
     const blogInfos: BlogInfo[] = await getBlogInfo();
     selectedBlog = findBlog(blogInfos, "greenflamingo");
@@ -69,13 +173,13 @@ describe("Tistory Test", () => {
             },
         } = await axios({
             method: "post",
-            url: API_URI.PUSH_POST,
+            url: API_URI.CREATE_POST,
             data: {
                 access_token: accessToken,
                 output: "json",
                 blogName: selectedBlog.name,
                 title: "test",
-                visibility: VISIBILITY.Protect,
+                visibility: VISIBILITY.PROTECT,
                 published: timestamp,
                 content: "<h1>header1</h1>",
             },
@@ -112,13 +216,13 @@ describe("Tistory Test", () => {
                 },
             } = await axios({
                 method: "post",
-                url: API_URI.PUSH_POST,
+                url: API_URI.CREATE_POST,
                 data: {
                     access_token: accessToken,
                     output: "json",
                     blogName: selectedBlog.name,
                     title: "test",
-                    visibility: VISIBILITY.Private,
+                    visibility: VISIBILITY.PRIVATE,
                     published: timestamp,
                     content: html,
                     password: "aaaa",
@@ -157,7 +261,7 @@ describe("Tistory Test", () => {
             },
         } = await axios.get(API_URI.CATEGORY_LIST, {
             params: {
-                access_token: getConfigProperty(PROPERTIES.Token),
+                access_token: getConfigProperty(PROPERTIES.TOKEN),
                 output: "json",
                 blogName: selectedBlog.name,
             },
@@ -210,7 +314,7 @@ describe("Tistory Test", () => {
         assert.strictEqual(document?.languageId, "markdown");
         const blogName = selectedBlog.name;
         const [options, markdownContent, postIdLocation] = await readFile(
-            document.uri,
+            document,
             blogName
         );
         //md2html
@@ -273,7 +377,7 @@ describe("Tistory Test", () => {
             data: { tistory },
         } = await axios({
             method: "post",
-            url: API_URI.PUSH_POST,
+            url: API_URI.CREATE_POST,
             data: {
                 access_token: accessToken,
                 output: "json",
@@ -294,6 +398,7 @@ describe("Tistory Test", () => {
         assert.ok(tistory.postId);
         assert.strictEqual(tistory.status, "200");
         console.log(tistory.url);
+        //insert postId
         const activeTextEditor = vscode.window.activeTextEditor;
         activeTextEditor?.selection;
         activeTextEditor!.edit((editorBuilder) => {
@@ -304,13 +409,13 @@ describe("Tistory Test", () => {
             editorBuilder.insert(position, `postId: ${tistory.postId}\n`);
         });
     });
-    // 500 Internal Error
+
     it("Post Blog4: Update Exist Post", async () => {
         const document = vscode.window.activeTextEditor?.document;
         assert.strictEqual(document?.languageId, "markdown");
         const blogName = selectedBlog.name;
         const [options, markdownContent, postIdLocation] = await readFile(
-            document.uri,
+            document,
             blogName
         );
 
@@ -368,7 +473,7 @@ describe("Tistory Test", () => {
         }
         // Markdown Token to HTML
         const content = md.renderer.render(tokens, {}, {});
-        const axiosResponse: AxiosResponse<ResponsePostInfo> = await axios({
+        const axiosResponse = await axios({
             method: "get",
             url: API_URI.READ_POST,
             params: {

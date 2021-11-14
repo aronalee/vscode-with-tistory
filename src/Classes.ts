@@ -32,7 +32,7 @@ export class ParsedOptions {
     }
 
     public get postId(): string {
-        return this._postId ? this.postId : "0";
+        return this._postId ? this._postId : "0";
     }
 
     public set tag(tagOption: string) {
@@ -70,7 +70,7 @@ export class ParsedOptions {
             this._date.setMinutes(minutes);
             this._date.setSeconds(seconds);
         } else {
-            throw new TypeError(ERROR_MESSAGES.NotMathDateFormat);
+            throw new TypeError(ERROR_MESSAGES.INVALID_DATA_FORMAT);
         }
     }
     public get date(): string {
@@ -88,22 +88,22 @@ export class ParsedOptions {
         } else if (/^private$|^false$/i.test(postCategory)) {
             this._post = "private";
         } else {
-            throw new TypeError(ERROR_MESSAGES.NotMatchPostFormat);
+            throw new TypeError(ERROR_MESSAGES.INVALID_POST_FORMAT);
         }
     }
     public get post(): VISIBILITY {
         if (this._post) {
             if (this._post === "public") {
-                return VISIBILITY.Public;
+                return VISIBILITY.PUBLIC;
             } else if (this._post === "protect") {
-                return VISIBILITY.Protect;
+                return VISIBILITY.PROTECT;
             } else if (this._post === "private") {
-                return VISIBILITY.Private;
+                return VISIBILITY.PRIVATE;
             } else {
-                throw new TypeError(ERROR_MESSAGES.FailParsing);
+                throw new TypeError(ERROR_MESSAGES.FAIL_PARSING);
             }
         } else {
-            throw new TypeError(ERROR_MESSAGES.FailParsing);
+            throw new TypeError(ERROR_MESSAGES.FAIL_PARSING);
         }
     }
     public set category(categoryName: string) {
@@ -113,7 +113,7 @@ export class ParsedOptions {
                 return;
             }
         }
-        throw new TypeError(ERROR_MESSAGES.FailParsing);
+        throw new TypeError(ERROR_MESSAGES.FAIL_PARSING);
     }
     public get category(): string {
         return this._category ? this._category.id : "0";
@@ -162,7 +162,7 @@ export class ParsedOptions {
         ) {
             return false;
         } else {
-            throw new Error(ERROR_MESSAGES.FailParsing);
+            throw new Error(ERROR_MESSAGES.FAIL_PARSING);
         }
     }
 }
