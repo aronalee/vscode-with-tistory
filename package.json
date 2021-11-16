@@ -1,13 +1,27 @@
 {
     "name": "vscode-with-tistory",
-    "displayName": "green-flamingo",
-    "description": "This extension is published in Tistory when written in Markdown Grammar in VSCODE.",
-    "version": "0.0.1",
+    "displayName": "vscode with tistory",
+    "description": "vscode에서 티스토리 게시글을 작성 및 수정할 수 있는 extension",
+    "publisher": "dev-green-flamingo",
+    "version": "1.0.0",
+    "license": "MIT",
+    "bugs": {
+        "url":"https://github.com/dev-green-flamingo/vscode-with-tistory/issues"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/dev-green-flamingo/vscode-with-tistory.git"
+    },
     "engines": {
         "vscode": "^1.58.0"
     },
     "categories": [
         "Other"
+    ],
+    "keywords": [
+        "vscode",
+        "tistory",
+        "markdown"
     ],
     "activationEvents": [
         "onCommand:vscode-with-tistory.login",
@@ -35,22 +49,22 @@
                 "vscode-with-tistory.Client.OAuth2.ClientID": {
                     "type": "string",
                     "default": "",
-                    "description": "티스토리 토큰 발급을 위한 ClientID"
+                    "description": "티스토리 토큰 발급을 위한 ClientID, API정보의 APP ID정보 입력"
                 },
                 "vscode-with-tistory.Client.OAuth2.ClientSecret": {
                     "type": "string",
                     "default": "",
-                    "description": "티스토리 토큰 발급을 위한 ClientSecret"
+                    "description": "티스토리 토큰 발급을 위한 ClientSecret, API정보의 Secret Key 정보 입력"
                 },
                 "vscode-with-tistory.Client.OAuth2.RedirectURI": {
                     "type": "string",
                     "default": "http://localhost:5500/",
-                    "description": "티스토리 토큰 발급을 위한 Redirect URI"
+                    "description": "티스토리 토큰 발급을 위한 Redirect URI, API정보의 CallBack 정보 입력"
                 },
                 "vscode-with-tistory.Blog": {
                     "type": "string",
                     "default": "",
-                    "description": "업로드할 블로그 주소, 잘못된 주소, 주소 미기입시 메인 블로그로 지정."
+                    "description": "블로그이름, 미입력 시 메인 블로그로 지정"
                 }
             }
         }

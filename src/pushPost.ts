@@ -94,21 +94,21 @@ const readFile = async (
             }
         } else {
             endParsing = true;
-            endOptionLineNumber++;
             continue;
         }
         endOptionLineNumber++;
     }
     const content = document.getText(
-        new vscode.Range(endOptionLineNumber, 0, document.lineCount, 0)
+        new vscode.Range(endOptionLineNumber + 1, 0, document.lineCount, 0)
     );
     return [options, content, endOptionLineNumber];
 };
 
 const uploadImage = async (uri: vscode.Uri, blogName: string) => {
     const FormData = require("form-data");
+    const fs = await import("fs");
     const formData = new FormData();
-    const buffer = await vscode.workspace.fs.readFile(uri);
+    const buffer = fs.readFileSync(decodeURI(uri.fsPath));
     const splitPath = uri.path.split("/");
     const filename = splitPath.pop();
     formData.append("access_token", getConfigProperty(PROPERTIES.TOKEN));
@@ -131,6 +131,7 @@ const convertImageURL = async (
 ): Promise<Token[]> => {
     const path = await import("path");
     const queue: Array<Token> = [];
+    queue.push(...tokens);
     //Search img tag(BFS)
     while (queue.length > 0) {
         const token = queue.shift(); // TODO: 빠른걸로 교체
@@ -145,10 +146,15 @@ const convertImageURL = async (
                 inputImageSrc
             );
             const uri = vscode.Uri.parse(inputImageSrc);
-            const url = await uploadImage(uri, blogName);
             if (uri.scheme === "https" || uri.scheme === "http") {
                 break;
             } else {
+                // TODO: 파일 못읽음
+                const url = await uploadImage(
+                    vscode.Uri.file(imageAbsolutePath),
+                    blogName
+                );
+
                 token.attrSet("src", url);
             }
         }
