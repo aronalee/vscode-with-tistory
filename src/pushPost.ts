@@ -149,6 +149,7 @@ const convertImageURL = async (
             if (uri.scheme === "https" || uri.scheme === "http") {
                 break;
             } else {
+                // TODO: 파일 못읽음
                 const url = await uploadImage(
                     vscode.Uri.file(imageAbsolutePath),
                     blogName
