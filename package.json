@@ -2,7 +2,7 @@
     "name": "vscode-with-tistory",
     "displayName": "vscode with tistory",
     "description": "vscode에서 티스토리 게시글을 작성 및 수정할 수 있는 extension",
-    "publisher": "dev-green-flamingo",
+    "publisher": "green-flamingo",
     "version": "1.0.0",
     "license": "MIT",
     "bugs": {
