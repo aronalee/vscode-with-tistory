@@ -53,16 +53,16 @@ User에 입력하면 모든 vscode project에 적용되고 Workspace에 입력�
 
 ```yaml
 ---
-title: "title"
+title: text
 date: yyyy-MM-dd hh:mm:ss | yyyy-MM-dd
 post: public | protect | private | true | false
 tag:
 - tag1
 - tag2
 comments: true | false
-password: string
-category: string
-url: string
+password: text
+category: text
+url: text
 postId: int
 ---
 ```
@@ -80,7 +80,7 @@ postId: int
   - protect: 게시글 보호
   - private, false: 비공개
 - tag: 게시글의 태그
-- comments: 게시글의 허용 여부
+- comments: 게시글의 댓글 허용 여부
 - password:게시글 비밀번호
 - category: 게시글 카테고리 이름
 - url: 블로그 설정에서 포스트 url을 문자로 보여주는 기능을 사용하였을 때 보여줄 문자
