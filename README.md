@@ -118,3 +118,4 @@ postId: int
 - markdown-it-emoji
 - form-data
 - axios
+- double-ended-queue

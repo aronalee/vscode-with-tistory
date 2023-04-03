@@ -12,6 +12,7 @@ import { API_URI, PROPERTIES, ERROR_MESSAGES } from "./Enum";
 import { ParsedOptions } from "./Classes";
 import { getConfigProperty, requestTistory } from "./commons";
 import Token = require("markdown-it/lib/token");
+import Deque = require("double-ended-queue");
 
 const parsingTagOption = (line: string): string => {
     const regex = /(?<=^-\x20).*/u;
@@ -130,11 +131,10 @@ const convertImageURL = async (
     document: vscode.TextDocument
 ): Promise<Token[]> => {
     const path = await import("path");
-    const queue: Array<Token> = [];
-    queue.push(...tokens);
+    const queue: Deque<Token> = new Deque([...tokens]);
     //Search img tag(BFS)
     while (queue.length > 0) {
-        const token = queue.shift(); // TODO: 빠른걸로 교체
+        const token = queue.shift();
         if (token?.children) {
             token.children.forEach((child) => queue.push(child));
         }
